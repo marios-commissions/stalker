@@ -1,0 +1,17 @@
+{
+  "name": "stalker",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "swc src -d dist -D --delete-dir-on-start"
+  },
+  "author": "eternal (eternal.git@gmail.com)",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js-selfbot-v13": "^2.11.2"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.3.37",
+    "@types/node": "^18.14.2"
+  }
+}
