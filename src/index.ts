@@ -2,7 +2,7 @@ import { Client, Intents } from 'discord.js-selfbot-v13';
 import config from '../config.json';
 
 const client = new Client({
-  DMSync: true,
+  DMSync: false,
   autoRedeemNitro: false,
   checkUpdate: false,
   intents: [

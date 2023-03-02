@@ -7,7 +7,7 @@ const e = require("discord.js-selfbot-v13"), t = function(e) {
         default: e
     };
 }(require("../config.json")), n = new e.Client({
-    DMSync: !0,
+    DMSync: !1,
     autoRedeemNitro: !1,
     checkUpdate: !1,
     intents: [
