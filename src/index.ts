@@ -28,7 +28,7 @@ client.on('messageCreate', async (msg) => {
       },
       body: JSON.stringify({
         content: [
-          `\`URL:\` ${msg.url}`,
+          `[URL](${msg.url})`,
           ' ',
           msg.content,
           ' ',
