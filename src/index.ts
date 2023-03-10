@@ -28,9 +28,7 @@ client.on('messageCreate', async (msg) => {
       },
       body: JSON.stringify({
         content: [
-          `[URL](${msg.url})`,
-          ' ',
-          msg.content,
+          `${msg.content} [↖](${msg.url})`,
           ' ',
           msg.attachments.size && '\`Attachments:\`',
           ...msg.attachments?.map(e => e.url)
