@@ -1,6 +1,10 @@
 {
   "token": "",
   "webhook": "",
+  "errors": {
+    "catch": true,
+    "webhook": ""
+  },
   "users": [
     "877181764831940639"
   ]
