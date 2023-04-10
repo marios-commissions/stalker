@@ -3,10 +3,13 @@ import type { APIEmbed } from 'discord-api-types/v10';
 import type Client from '@structures/client';
 
 import Event, { EventHandler } from '@structures/event';
+import Webhook from '@structures/webhook';
 import { bind } from '@utilities';
 import config from '@config';
 
 class MessageEvent extends Event implements EventHandler<'messageCreate'> {
+  public webhooks: Map<number, typeof Webhook> = new Map();
+
   constructor(
     public client: InstanceType<typeof Client>
   ) {
@@ -15,9 +18,13 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 
   @bind
   handler(msg: Message) {
-    if (msg.author.bot || !config.listeners.find(listener => {
+    const listener = config.listeners.find(listener => {
       if (listener.channel && listener.channel !== msg.channel.id) {
         return false;
+      }
+
+      if (listener.channel && listener.channel === msg.channel.id && !listener.users?.length) {
+        return true;
       }
 
       if (listener.users?.length && listener.users.includes(msg.author.id)) {
@@ -25,9 +32,14 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
       }
 
       return false;
-    })) return;
+    });
 
-    this.client.webhook.send({
+    if (msg.author.bot || !listener) return;
+
+    const idx = config.listeners.indexOf(listener);
+    this.webhooks[idx] ??= new Webhook(this.client, listener.webhook ?? config.webhook);
+
+    this.webhooks[idx].send({
       content: [
         `${msg.content} [\`↖\`](${msg.url})`,
         ' ',
