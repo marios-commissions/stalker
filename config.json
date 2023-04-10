@@ -1,11 +1,24 @@
 {
-  "token": "",
-  "webhook": "",
+  "token": "xxxxxxxxxxxxxxxxxxxxx",
+  "webhook": "https://discord.com/api/webhooks/123/123",
   "errors": {
     "catch": true,
-    "webhook": ""
+    "webhook": "https://discord.com/api/webhooks/123/123"
   },
-  "users": [
-    "877181764831940639"
+  "listeners": [
+    {
+      "channel": "1234"
+    },
+    {
+      "channel": "1234",
+      "users": [
+        "1234"
+      ]
+    },
+    {
+      "users": [
+        "1234"
+      ]
+    }
   ]
 }
