@@ -34,7 +34,7 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
       return false;
     });
 
-    if (msg.author.bot || !listener) return;
+    if (!listener) return;
 
     const idx = config.listeners.indexOf(listener);
     this.webhooks[idx] ??= new Webhook(this.client, listener.webhook ?? config.webhook);
