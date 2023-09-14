@@ -8,49 +8,54 @@ import { bind } from '@utilities';
 import config from '@config';
 
 class MessageEvent extends Event implements EventHandler<'messageCreate'> {
-  public webhooks: Map<number, typeof Webhook> = new Map();
+	public webhooks: Map<number, typeof Webhook> = new Map();
 
-  constructor(
-    public client: InstanceType<typeof Client>
-  ) {
-    super({ name: 'messageCreate' });
-  }
+	constructor(
+		public client: InstanceType<typeof Client>
+	) {
+		super({ name: 'messageCreate' });
+	}
 
-  @bind
-  handler(msg: Message) {
-    const listener = config.listeners.find(listener => {
-      if (listener.channel && listener.channel !== msg.channel.id) {
-        return false;
-      }
+	@bind
+	async handler(msg: Message) {
+		const listener = config.listeners.find(listener => {
+			if (listener.channel && listener.channel !== msg.channel.id) {
+				return false;
+			}
 
-      if (listener.channel && listener.channel === msg.channel.id && !listener.users?.length) {
-        return true;
-      }
+			if (listener.channel && listener.channel === msg.channel.id && !listener.users?.length) {
+				return true;
+			}
 
-      if (listener.users?.length && listener.users.includes(msg.author.id)) {
-        return true;
-      }
+			if (listener.users?.length && listener.users.includes(msg.author.id)) {
+				return true;
+			}
 
-      return false;
-    });
+			return false;
+		});
 
-    if (!listener) return;
+		if (!listener) return;
 
-    const idx = config.listeners.indexOf(listener);
-    this.webhooks[idx] ??= new Webhook(this.client, listener.webhook ?? config.webhook);
+		const idx = config.listeners.indexOf(listener);
+		this.webhooks[idx] ??= new Webhook(this.client, listener.webhook ?? config.webhook);
 
-    this.webhooks[idx].send({
-      content: [
-        `${msg.content} [\`↖\`](${msg.url})`,
-        ' ',
-        msg.attachments.size && '\`Attachments:\`',
-        ...msg.attachments?.map(e => e.url)
-      ].filter(Boolean).join('\n') ?? '',
-      username: msg.author.tag,
-      avatar_url: msg.author.avatarURL({ dynamic: true, size: 4096 }),
-      embeds: [...msg.embeds.values()] as any as APIEmbed[]
-    });
-  }
+		const reply = msg.type === 'REPLY' && await msg.fetchReference();
+
+		this.webhooks[idx].send({
+			content: [
+				reply && `**Replying to ${reply.author.username}**`,
+				...(reply ? reply.content.split('\n').map(e => '> ' + e) : []),
+				reply && ' ',
+				`${msg.content} [\`↖\`](${msg.url})`,
+				' ',
+				msg.attachments.size && '\`Attachments:\`',
+				...msg.attachments?.map(e => e.url)
+			].filter(Boolean).join('\n') ?? '',
+			username: msg.author.tag,
+			avatar_url: msg.author.avatarURL({ dynamic: true, size: 4096 }),
+			embeds: [...msg.embeds.values()] as any as APIEmbed[]
+		});
+	}
 }
 
 export default MessageEvent;
