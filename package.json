@@ -8,7 +8,8 @@
   "author": "eternal (eternal.git@gmail.com)",
   "license": "ISC",
   "dependencies": {
-    "discord.js-selfbot-v13": "^2.14.11"
+    "discord.js-selfbot-v13": "^2.14.11",
+    "source-map-support": "^0.5.21"
   },
   "devDependencies": {
     "@swc/core": "^1.3.50",
