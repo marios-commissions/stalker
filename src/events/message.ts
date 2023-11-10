@@ -46,7 +46,7 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 				reply && `**Replying to ${reply.author.username}**`,
 				...(reply ? reply.content.split('\n').map(e => '> ' + e) : []),
 				reply && ' ',
-				`${msg.content} [\`↖\`](${msg.url})`,
+				`${this.getContent(msg)} [\`↖\`](${msg.url})`,
 				' ',
 				msg.attachments.size && '\`Attachments:\`',
 				...msg.attachments?.map(e => e.url)
@@ -55,6 +55,18 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 			avatar_url: msg.author.avatarURL({ dynamic: true, size: 4096 }),
 			embeds: [...msg.embeds.values()] as any as APIEmbed[]
 		});
+	}
+
+	getContent(msg: Message): string {
+		let content = msg.content;
+
+		if (config.replacements) {
+			for (const [subject, replacement] of Object.entries(config.replacements)) {
+				content = content.replaceAll(subject, replacement);
+			}
+		}
+
+		return content;
 	}
 }
 
