@@ -3,13 +3,11 @@ import type { APIEmbed } from 'discord-api-types/v10';
 import type Client from '@structures/client';
 
 import Event, { EventHandler } from '@structures/event';
-import Webhook from '@structures/webhook';
 import { bind } from '@utilities';
 import config from '@config';
 
-class MessageEvent extends Event implements EventHandler<'messageCreate'> {
-	public webhooks: Map<number, typeof Webhook> = new Map();
 
+class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 	constructor(
 		public client: InstanceType<typeof Client>
 	) {
@@ -18,30 +16,11 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 
 	@bind
 	async handler(msg: Message) {
-		const listener = config.listeners.find(listener => {
-			if (listener.channel && listener.channel !== msg.channel.id) {
-				return false;
-			}
-
-			if (listener.channel && listener.channel === msg.channel.id && !listener.users?.length) {
-				return true;
-			}
-
-			if (listener.users?.length && listener.users.includes(msg.author.id)) {
-				return true;
-			}
-
-			return false;
-		});
-
-		if (!listener) return;
-
-		const idx = config.listeners.indexOf(listener);
-		this.webhooks[idx] ??= new Webhook(this.client, listener.webhook ?? config.webhook);
+		if (!config.channels.includes(msg.channelId)) return;
 
 		const reply = msg.type === 'REPLY' && await msg.fetchReference();
 
-		this.webhooks[idx].send({
+		this.client.webhook.send({
 			content: [
 				reply && `**Replying to ${reply.author.username}**`,
 				...(reply ? reply.content.split('\n').map(e => '> ' + e) : []),
@@ -51,22 +30,20 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 				msg.attachments.size && '\`Attachments:\`',
 				...msg.attachments?.map(e => e.url)
 			].filter(Boolean).join('\n') ?? '',
-			username: msg.author.tag,
+			username: msg.channel.name ?? 'Unknown',
 			avatar_url: msg.author.avatarURL({ dynamic: true, size: 4096 }),
 			embeds: [...msg.embeds.values()] as any as APIEmbed[]
 		});
 	}
 
 	getContent(msg: Message): string {
-		let content = msg.content;
+		let content: string | string[] = [];
 
-		if (config.replacements) {
-			for (const [subject, replacement] of Object.entries(config.replacements)) {
-				content = content.replaceAll(subject, replacement);
-			}
+		for (const embed of msg.embeds.values()) {
+			content.push(`${embed.title} | ${embed.fields.find(f => f.name.includes('Contract'))?.value}`);
 		}
 
-		return content;
+		return Array.isArray(content) ? content.join('\n') : content;
 	}
 }
 

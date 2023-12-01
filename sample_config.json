@@ -1,0 +1,13 @@
+{
+	"token": "xxxxxx",
+	"channels": [
+		"xxx",
+		"xxx",
+		"xxx"
+	],
+	"webhook": "https://discord.com/api/webhooks/123/123",
+	"errors": {
+		"catch": true,
+		"webhook": "https://discord.com/api/webhooks/123/123"
+	}
+}
