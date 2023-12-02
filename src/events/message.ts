@@ -6,7 +6,6 @@ import Event, { EventHandler } from '@structures/event';
 import { bind } from '@utilities';
 import config from '@config';
 
-
 class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 	constructor(
 		public client: InstanceType<typeof Client>
@@ -31,8 +30,7 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 				...msg.attachments?.map(e => e.url)
 			].filter(Boolean).join('\n') ?? '',
 			username: msg.channel.name ?? 'Unknown',
-			avatar_url: msg.author.avatarURL({ dynamic: true, size: 4096 }),
-			embeds: [...msg.embeds.values()] as any as APIEmbed[]
+			avatar_url: msg.author.avatarURL({ dynamic: true, size: 4096 })
 		});
 	}
 
