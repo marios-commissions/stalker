@@ -1,5 +1,23 @@
 {
 	"token": "xxxxxx",
+	"listeners": [
+		{
+			"channel": "1234",
+			"webhook": "https://discord.com/api/webhooks/123/123"
+		},
+		{
+			"channel": "1234",
+			"webhook": "https://discord.com/api/webhooks/123/123",
+			"users": [
+				"1234"
+			]
+		},
+		{
+			"users": [
+				"1234"
+			]
+		}
+	],
 	"channels": [
 		"xxx",
 		"xxx",

@@ -1,12 +1,14 @@
+import Event, { EventHandler } from '@structures/event';
 import type { Message } from 'discord.js-selfbot-v13';
 import type { APIEmbed } from 'discord-api-types/v10';
 import type Client from '@structures/client';
-
-import Event, { EventHandler } from '@structures/event';
+import Webhook from '@structures/webhook';
 import { bind } from '@utilities';
 import config from '@config';
 
 class MessageEvent extends Event implements EventHandler<'messageCreate'> {
+	public webhooks: Map<number, typeof Webhook> = new Map();
+
 	constructor(
 		public client: InstanceType<typeof Client>
 	) {
@@ -15,11 +17,30 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 
 	@bind
 	async handler(msg: Message) {
-		if (!config.channels.includes(msg.channelId)) return;
+		const listener = config.listeners.find(listener => {
+			if (listener.channel && listener.channel !== msg.channel.id) {
+				return false;
+			}
+
+			if (listener.channel && listener.channel === msg.channel.id && !listener.users?.length) {
+				return true;
+			}
+
+			if (listener.users?.length && listener.users.includes(msg.author.id)) {
+				return true;
+			}
+
+			return false;
+		});
+
+		if (!listener) return;
+
+		const idx = config.listeners.indexOf(listener);
+		this.webhooks[idx] ??= new Webhook(this.client, listener.webhook ?? config.webhook);
 
 		const reply = msg.type === 'REPLY' && await msg.fetchReference();
 
-		this.client.webhook.send({
+		this.webhooks[idx].webhook.send({
 			content: [
 				reply && `**Replying to ${reply.author.username}**`,
 				...(reply ? reply.content.split('\n').map(e => '> ' + e) : []),
