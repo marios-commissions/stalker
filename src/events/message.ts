@@ -40,7 +40,7 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 
 		const reply = msg.type === 'REPLY' && await msg.fetchReference();
 
-		this.webhooks[idx].webhook.send({
+		this.webhooks[idx].send({
 			content: [
 				reply && `**Replying to ${reply.author.username}**`,
 				...(reply ? reply.content.split('\n').map(e => '> ' + e) : []),
