@@ -58,8 +58,42 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 	getContent(msg: Message): string {
 		let content: string | string[] = [];
 
-		for (const embed of msg.embeds.values()) {
-			content.push(`${embed.title} | ${embed.fields.find(f => f.name.includes('Contract'))?.value}`);
+		switch (msg.channel.id) {
+			case '1166791604997206047':
+			case '1166792249863049246':
+				for (const embed of msg.embeds.values()) {
+					const bought = embed.title.includes('💵');
+
+					content.push(`${embed.title} - ${[
+						embed.fields.find(f => f.name.includes('Chart'))?.value,
+						`💰 ${embed.fields.find(f => f.name.includes('Market cap'))?.value}`,
+						`${bought ? 'Bought' : 'Sold'} ${embed.fields.find(f => f.name.includes(bought ? 'bought' : 'sold'))?.value}`,
+						`Age: ${embed.fields.find(f => f.name.includes('Token age'))?.value}`,
+						`Win rate: ${embed.fields.find(f => f.name.includes('Win rate'))?.value}`,
+						`PNL: ${embed.fields.find(f => f.name.includes('PNL'))?.value}`,
+					].join(' | ')}`);
+				}
+
+				break;
+			case '1154757415200366592':
+				for (const embed of msg.embeds.values()) {
+					const bought = embed.title.includes('💵');
+
+					content.push(`${msg.content.replaceAll('\n', '').replaceAll('#', '')} - ${[
+						embed.title,
+						embed.fields.find(f => f.name.includes('Chart'))?.value,
+						`Market cap: ${embed.fields.find(f => f.name.includes('Market cap'))?.value}`,
+						`${bought ? 'Bought' : 'Sold'} ${embed.fields.find(f => f.name.includes(bought ? 'bought' : 'sold'))?.value}`,
+						`Age: ${embed.fields.find(f => f.name.includes('Token age'))?.value}`,
+						`Win rate: ${embed.fields.find(f => f.name.includes('Win rate'))?.value}`,
+						`PNL: ${embed.fields.find(f => f.name.includes('PNL'))?.value}`,
+					].join(' | ')}`);
+				}
+
+				break;
+			default:
+				content.push(msg.content);
+				break;
 		}
 
 		return Array.isArray(content) ? content.join('\n') : content;
