@@ -71,7 +71,7 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 						`Age: ${embed.fields.find(f => f.name.includes('Token age'))?.value}`,
 						`Win rate: ${embed.fields.find(f => f.name.includes('Win rate'))?.value}`,
 						`PNL: ${embed.fields.find(f => f.name.includes('PNL'))?.value}`,
-					].join(' | ')}`);
+					].join(' | ')}`.replaceAll(/(https?:\/\/[^\s]+)/gi, ''));
 				}
 
 				break;
@@ -87,10 +87,18 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 						`Age: ${embed.fields.find(f => f.name.includes('Token age'))?.value}`,
 						`Win rate: ${embed.fields.find(f => f.name.includes('Win rate'))?.value}`,
 						`PNL: ${embed.fields.find(f => f.name.includes('PNL'))?.value}`,
-					].join(' | ')}`);
+					].join(' | ')}`.replaceAll(/(https?:\/\/[^\s]+)/gi, ''));
 				}
 
 				break;
+			case '1166791187336806510':
+				for (const embed of msg.embeds.values()) {
+					content.push(`${embed.title} - ${msg.content.replaceAll('\n', '').replaceAll('#', '')} ${[
+						embed.fields.find(f => f.name.includes('Chart'))?.value,
+						`Market cap: ${embed.fields.find(f => f.name.includes('Market cap'))?.value}`,
+						`Launched: ${embed.fields.find(f => f.name.includes('Token launched'))?.value}`
+					].join(' | ')}`.replaceAll(/(https?:\/\/[^\s]+)/gi, ''));
+				}
 			default:
 				content.push(msg.content);
 				break;
