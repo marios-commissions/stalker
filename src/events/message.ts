@@ -60,8 +60,8 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 
 		for (const embed of msg.embeds.values()) {
 			content.push(`${embed.title} | ${[
-				embed.fields.find(f => f.name.includes('Contract'))?.value,
 				embed.fields.find(f => f.name.includes('FDV'))?.value,
+				embed.fields.find(f => f.name.includes('Contract'))?.value,
 			].join(' | ')}`);
 		}
 
