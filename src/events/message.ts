@@ -59,7 +59,10 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 		let content: string | string[] = [];
 
 		for (const embed of msg.embeds.values()) {
-			content.push(`${embed.title} | ${embed.fields.find(f => f.name.includes('Contract'))?.value}`);
+			content.push(`${embed.title} | ${[
+				embed.fields.find(f => f.name.includes('Contract'))?.value,
+				embed.fields.find(f => f.name.includes('FDV'))?.value,
+			].join(' | ')}`);
 		}
 
 		return Array.isArray(content) ? content.join('\n') : content;
