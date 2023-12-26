@@ -17,7 +17,7 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 
 	@bind
 	async handler(msg: Message) {
-		const listener = config.listeners.find(listener => {
+		const listeners = config.listeners.filter(listener => {
 			if (listener.channel && listener.channel !== msg.channel.id) {
 				return false;
 			}
@@ -33,26 +33,28 @@ class MessageEvent extends Event implements EventHandler<'messageCreate'> {
 			return false;
 		});
 
-		if (!listener) return;
-
-		const idx = config.listeners.indexOf(listener);
-		this.webhooks[idx] ??= new Webhook(this.client, listener.webhook ?? config.webhook);
+		if (!listeners?.length) return;
 
 		const reply = msg.type === 'REPLY' && await msg.fetchReference();
 
-		this.webhooks[idx].send({
-			content: [
-				reply && `**Replying to ${reply.author.username}**`,
-				...(reply ? reply.content.split('\n').map(e => '> ' + e) : []),
-				reply && ' ',
-				`${this.getContent(msg)} [\`↖\`](${msg.url})`,
-				' ',
-				msg.attachments.size && '\`Attachments:\`',
-				...msg.attachments?.map(e => e.url)
-			].filter(Boolean).join('\n') ?? '',
-			username: msg.channel.name ?? 'Unknown',
-			avatar_url: msg.author.avatarURL({ dynamic: true, size: 4096 })
-		});
+		for (const listener of listeners) {
+			const idx = config.listeners.indexOf(listener);
+			this.webhooks[idx] ??= new Webhook(this.client, listener.webhook ?? config.webhook);
+
+			this.webhooks[idx].send({
+				content: [
+					reply && `**Replying to ${reply.author.username}**`,
+					...(reply ? reply.content.split('\n').map(e => '> ' + e) : []),
+					reply && ' ',
+					`${this.getContent(msg)} [\`↖\`](${msg.url})`,
+					' ',
+					msg.attachments.size && '\`Attachments:\`',
+					...msg.attachments?.map(e => e.url)
+				].filter(Boolean).join('\n') ?? '',
+				username: msg.channel.name ?? 'Unknown',
+				avatar_url: msg.author.avatarURL({ dynamic: true, size: 4096 })
+			});
+		}
 	}
 
 	getContent(msg: Message): string {
