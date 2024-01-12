@@ -8,25 +8,10 @@
 		"resolveJsonModule": true,
 		"baseUrl": "src",
 		"paths": {
-			"@structures/*": [
-				"structures/*"
+			"~/*": [
+				"*"
 			],
-			"@utilities/*": [
-				"utilities/*"
-			],
-			"@events/*": [
-				"events/*"
-			],
-			"@structures": [
-				"structures/index.ts"
-			],
-			"@events": [
-				"events/index.ts"
-			],
-			"@utilities": [
-				"utilities/index.ts"
-			],
-			"@config": [
+			"~/config": [
 				"../config.json"
 			]
 		}
