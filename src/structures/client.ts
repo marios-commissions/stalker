@@ -160,7 +160,6 @@ class Client {
 					const idx = config.listeners.indexOf(listener);
 					this.webhooks[idx] ??= new Webhook(listener.webhook ?? config.webhook);
 
-
 					this.webhooks[idx].send({
 						content: [
 							payload.t === 'MESSAGE_UPDATE' ? '__**Message Updated**__' : '',
@@ -172,8 +171,8 @@ class Client {
 							msg.attachments.length && '\`Attachments:\`',
 							...msg.attachments?.map(e => e.url)
 						].filter(Boolean).join('\n') ?? '',
-						username: listener.name ?? 'Unknown',
-						avatar_url: msg.author.avatar_url
+						username: msg.author.username ?? listener.name ?? 'Unknown',
+						avatar_url: msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null
 					});
 				}
 			} break;
