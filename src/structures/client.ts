@@ -136,6 +136,8 @@ class Client {
 			case 'MESSAGE_UPDATE': {
 				const msg = payload.d;
 
+				if (!msg.content) return;
+
 				const listeners = config.listeners.filter(listener => {
 					if (listener.channel && listener.channel !== msg.channel_id) {
 						return false;
