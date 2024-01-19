@@ -174,8 +174,7 @@ class Client {
 							...msg.attachments?.map(e => e.url)
 						].filter(Boolean).join('\n') ?? '',
 						username: msg.author?.username ?? listener.name ?? 'Unknown',
-						avatar_url: msg.author?.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null,
-						embeds: msg.embeds ?? []
+						avatar_url: msg.author?.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null
 					});
 				}
 			} break;
