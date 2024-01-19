@@ -2,16 +2,27 @@
 	"debug": false,
 	"apiVersion": 10,
 	"token": "xxx",
+	"embeds": true,
+	"allowedEmbeds": [
+		"twitter.com",
+		"fxtwitter.com",
+		"vxtwitter.com",
+		"fixupx.com",
+		"x.com",
+		"twitter.com"
+	],
 	"listeners": [
 		{
 			"name": "Listener 1",
 			"channel": "1084464315043680346",
-			"webhook": "https://discord.com/api/webhooks/xxx/xxx"
+			"webhook": "https://discord.com/api/webhooks/xxx/xxx",
+			"embeds": false
 		},
 		{
 			"name": "Listener 2",
 			"channel": "1234",
 			"webhook": "https://discord.com/api/webhooks/xxx/xxx",
+			"embeds": true,
 			"users": [
 				"1234"
 			]
