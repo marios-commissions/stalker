@@ -170,7 +170,7 @@ class Client {
 							reply && ' ',
 							`${this.getContent(msg)} [\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})`,
 							' ',
-							msg.attachments.length && '\`Attachments:\`',
+							msg.attachments?.length && '\`Attachments:\`',
 							...msg.attachments?.map(e => e.url)
 						].filter(Boolean).join('\n') ?? '',
 						username: msg.author.username ?? listener.name ?? 'Unknown',
