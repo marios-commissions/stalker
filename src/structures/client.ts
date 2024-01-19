@@ -165,9 +165,9 @@ class Client {
 					this.webhooks[idx].send({
 						content: [
 							payload.t === 'MESSAGE_UPDATE' ? '__**Message Updated**__' : '',
-							reply.content && `**Replying to ${reply.author.username}**`,
-							...(reply.content ? reply.content.split('\n').map(e => '> ' + e) : []),
-							reply.content && ' ',
+							reply?.content && `**Replying to ${reply.author?.username ?? 'Unknown'}**`,
+							...(reply?.content ? reply.content.split('\n').map(e => '> ' + e) : []),
+							reply?.content && ' ',
 							`${this.getContent(msg, listener)} [\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})`,
 							' ',
 							msg.attachments?.length && '\`Attachments:\`',
