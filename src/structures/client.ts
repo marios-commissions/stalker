@@ -138,7 +138,7 @@ class Client {
 
 				if (!msg.content && !msg.embeds?.length && !msg.attachments?.length) return;
 
-				const listeners = config.listeners.filter(listener => {
+				const listeners = config.listeners?.filter(listener => {
 					if (listener.channel && listener.channel !== msg.channel_id) {
 						return false;
 					}
@@ -168,7 +168,7 @@ class Client {
 							reply && `**Replying to ${reply.author.username}**`,
 							...(reply ? reply.content.split('\n').map(e => '> ' + e) : []),
 							reply && ' ',
-							`${this.getContent(msg)} [\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})`,
+							`${this.getContent(msg, listener)} [\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})`,
 							' ',
 							msg.attachments?.length && '\`Attachments:\`',
 							...msg.attachments?.map(e => e.url)
@@ -182,7 +182,7 @@ class Client {
 		}
 	}
 
-	getContent(msg: Message) {
+	getContent(msg: Message, listener: any) {
 		let content: string | string[] = [];
 
 		if (config.replacements) {
@@ -237,7 +237,23 @@ class Client {
 				break;
 		}
 
-		return Array.isArray(content) ? content.join('\n') : content;
+		content = Array.isArray(content) ? content.join('\n') : content;
+
+		const shouldAllowEmbeds = config.embeds || listener.embeds;
+		if (!shouldAllowEmbeds) {
+			const links = content.match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gmi);
+			if (!links?.length) return content;
+
+			for (const link of links) {
+				const areEmbedsAllowedForCurrentEntity = (config?.allowedEmbeds ?? []).some(allowed => ~link.indexOf(allowed));
+
+				if (!areEmbedsAllowedForCurrentEntity) {
+					content = content.replaceAll(link, `<${link}>`);
+				}
+			}
+		}
+
+		return content;
 	}
 
 	onHello(payload: { heartbeat_interval: number; }) {
