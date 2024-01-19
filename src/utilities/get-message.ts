@@ -25,7 +25,7 @@ async function getMessage(channel: string, message: string): Promise<Message | n
 		return null;
 	}
 
-	return json[0] as Message;
+	return json?.[0] as Message;
 }
 
 export default getMessage;
