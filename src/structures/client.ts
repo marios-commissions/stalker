@@ -187,7 +187,7 @@ class Client {
 
 		if (config.replacements) {
 			for (const [subject, replacement] of Object.entries(config.replacements)) {
-				content = content.replaceAll(subject, replacement);
+				content = content?.replaceAll(subject, replacement);
 			}
 		}
 
