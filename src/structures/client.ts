@@ -136,7 +136,7 @@ class Client {
 			case 'MESSAGE_UPDATE': {
 				const msg = payload.d;
 
-				if (!msg.content) return;
+				if (!msg.content && !msg.embeds?.length && !msg.attachments?.length) return;
 
 				const listeners = config.listeners.filter(listener => {
 					if (listener.channel && listener.channel !== msg.channel_id) {
@@ -174,7 +174,8 @@ class Client {
 							...msg.attachments?.map(e => e.url)
 						].filter(Boolean).join('\n') ?? '',
 						username: msg.author.username ?? listener.name ?? 'Unknown',
-						avatar_url: msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null
+						avatar_url: msg.author.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null,
+						embeds: msg.embeds ?? []
 					});
 				}
 			} break;

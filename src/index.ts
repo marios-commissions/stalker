@@ -11,9 +11,10 @@ if (config.errors.catch) {
 	const webhook = new Webhook(config.errors.webhook);
 
 	process.on('uncaughtException', (error, origin) => {
+		console.error(error);
 		webhook.send({
 			content: [
-				'**An error occured inside discord-twitter-forward**',
+				'**An error occured inside stalker**',
 				'',
 				`Origin: \`${origin ?? 'Unknown'}\``,
 				`Cause: \`${error.cause ?? 'Unknown'}\``,
