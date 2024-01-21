@@ -1,3 +1,5 @@
+// Socket
+
 export enum OPCodes {
 	DISPATCH = 0,
 	HEARTBEAT = 1,
@@ -24,3 +26,7 @@ export enum ConnectionState {
 	RESUMING,
 	CONNECTED
 }
+
+// Misc
+export const BUILD_NUMBER_STRING = 'build_number:"';
+export const BUILD_NUMBER_LENGTH = 6;
