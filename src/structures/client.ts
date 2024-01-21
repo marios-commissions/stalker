@@ -1,4 +1,4 @@
-import { OPCodes, ConnectionState, HELLO_TIMEOUT, HEARTBEAT_MAX_RESUME_THRESHOLD, MAX_CONNECTION_RETRIES } from '~/constants';
+import { OPCodes, ConnectionState, HELLO_TIMEOUT, HEARTBEAT_MAX_RESUME_THRESHOLD, MAX_CONNECTION_RETRIES, BUILD_NUMBER_STRING, BUILD_NUMBER_LENGTH } from '~/constants';
 import { createLogger } from '~/structures/logger';
 import { strip, getMessage } from '~/utilities';
 import Webhook from '~/structures/webhook';
@@ -27,7 +27,7 @@ class Client {
 	constructor(
 		public token: string,
 	) {
-		this.createSocket();
+		this.getLatestBuildNumber().then(this.createSocket.bind(this));
 	}
 
 	onMessage(data: string) {
@@ -324,6 +324,47 @@ class Client {
 	get canResume() {
 		const threshold = (!this.lastHeartbeatAckTime || Date.now() - this.lastHeartbeatAckTime <= HEARTBEAT_MAX_RESUME_THRESHOLD);
 		return this.sessionId != null && threshold;
+	}
+
+	async getLatestBuildNumber() {
+		this.logger.info('Getting latest client build number to avoid suspensions...');
+
+		const doc = await fetch('https://discord.com/app').then(r => r.text());
+		const scripts = doc.match(/\/assets\/[0-9]{1,5}.*?.js/gmi);
+
+		if (!scripts?.length) {
+			this.logger.error('Failed to get latest build number.');
+			return process.exit(-1);
+		}
+
+		// Reverse the script collection as the script containing the build number is usually at the end.
+		for (const script of scripts.reverse()) {
+			try {
+				const js = await fetch('https://discord.com' + script, {
+					headers: {
+						Origin: 'https://discord.com/',
+						Referer: 'https://discord.com/app'
+					}
+				}).then(r => r.text());
+
+				const idx = js.indexOf(BUILD_NUMBER_STRING);
+				if (idx === -1) continue;
+
+				const build = js.slice(idx + BUILD_NUMBER_STRING.length, (idx + BUILD_NUMBER_STRING.length) + BUILD_NUMBER_LENGTH);
+				const buildNumber = Number(build);
+
+				if (Number.isNaN(buildNumber)) {
+					throw new Error(`Expected build number to be a number. Got NaN. String: ${build}`);
+				}
+
+				config.properties.client_build_number = Number(build);
+				this.logger.success('Fetched latest client build number.');
+
+				break;
+			} catch (error) {
+				this.logger.error('Failed to make request while getting latest build number:', error);
+			}
+		}
 	}
 }
 
