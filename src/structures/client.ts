@@ -327,7 +327,7 @@ class Client {
 	}
 
 	async getLatestBuildNumber() {
-		this.logger.info('Getting latest client build number to avoid suspensions...');
+		this.logger.info('Getting latest client build number to avoid account suspensions...');
 
 		const doc = await fetch('https://discord.com/app').then(r => r.text());
 		const scripts = doc.match(/\/assets\/[0-9]{1,5}.*?.js/gmi);
