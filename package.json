@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"main": "dist/index.js",
 	"scripts": {
-		"build": "swc src -d dist -D --delete-dir-on-start"
+		"build": "swc src -d dist -D --delete-dir-on-start --strip-leading-paths"
 	},
 	"author": "Mario <mariovparaschiv@gmail.com> (github.com/localip)",
 	"license": "Unlicensed",
