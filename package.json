@@ -5,7 +5,7 @@
 	"scripts": {
 		"build": "swc src -d dist -D --delete-dir-on-start --strip-leading-paths"
 	},
-	"author": "Mario <mariovparaschiv@gmail.com> (github.com/localip)",
+	"author": "Mario <me@marioparaschiv.com> (github.com/marioparaschiv)",
 	"license": "Unlicensed",
 	"dependencies": {
 		"discord.js-selfbot-v13": "^2.14.11",
