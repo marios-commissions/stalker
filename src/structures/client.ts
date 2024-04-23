@@ -205,6 +205,24 @@ class Client {
 						if (!embed.fields.length) return;
 					}
 
+					if (msg.channel_id === '1178401326674223186' && listener.conditions?.sol) {
+						if (!listener.conditions) continue;
+						const embed = msg.embeds[0];
+						if (!embed) return;
+
+						try {
+							const amount = embed.fields.find(r => r.name === 'Amount in LP:');
+							if (!amount) return;
+
+							const sol = Number(amount.value.split('\n')[0].match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
+							if (sol < listener.conditions.sol) {
+								continue;
+							}
+						} catch (e) {
+							console.error(e);
+						}
+					}
+
 					const idx = config.listeners.indexOf(listener);
 					this.webhooks[idx] ??= new Webhook(listener.webhook ?? config.webhook);
 
@@ -247,6 +265,49 @@ class Client {
 					content = content.replaceAll(link, `<${link}>`);
 				}
 			}
+		}
+
+		if (listener.conditions && msg.channel_id === '1172966096995897408') {
+			const embed = msg.embeds[0];
+			if (!embed) return content;
+
+			content = '';
+
+			for (const field of embed.fields) {
+				const oldContent = content;
+
+				try {
+					const coin = field.name;
+					const description = field.value;
+
+					const liquidity = description.match(/LIQ\: (.*?)(?=\`)/gmi)[0].split(': ')[1];
+					const volume = description.match(/VOL\: (.*?)(?=\`)/gmi)[0].split(': ')[1];
+					const created = description.match(/<t:\d+:R>/gmi)[0];
+
+					content += '\n\n=============\n';
+					content += '**' + coin + '**' + '\n\n';
+
+					content += `**Liquidity**: ${liquidity}\n`;
+					content += `**Volume**: ${volume}\n`;
+					content += `**Created**: ${created}\n`;
+					content += '=============';
+				} catch (e) {
+					console.log(e);
+					content = oldContent;
+					continue;
+				}
+			}
+		}
+
+		if (listener.conditions && msg.channel_id === '1178401326674223186') {
+			const embed = msg.embeds[0];
+			if (!embed) return content;
+
+			content = '';
+
+			const amount = embed.fields.find(r => r.name === 'Amount in LP:');
+			const sol = Number(amount.value.split('\n')[0].match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
+			content = `${embed.title}: ${sol} SOL`;
 		}
 
 		if (listener.conditions && msg.channel_id === '1172966096995897408') {
