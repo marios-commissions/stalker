@@ -174,9 +174,7 @@ class Client {
 								// Liquidity
 								const liquidity = description.match(/LIQ\: (.*?)(?=\`)/gmi)[0].split(': ')[1];
 								const liquidityNum = Number(liquidity.match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
-								console.log('Liquidity', liquidity, liquidityNum);
 								if (liquidityNum < listener.conditions?.liquidity) {
-									console.log('Coin did not meet requirements for liquidity:', coin);
 									embed.fields = embed.fields.filter(f => f.name !== coin);
 									continue;
 								}
@@ -184,7 +182,6 @@ class Client {
 								// Volume
 								const vol = description.match(/VOL\: (.*?)(?=\`)/gmi)[0].split(': ')[1];
 								const volume = Number(vol.match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
-								console.log('Volume', vol, volume);
 								if (volume < listener.conditions?.volume) {
 									embed.fields = embed.fields.filter(f => f.name !== coin);
 									continue;
@@ -193,9 +190,8 @@ class Client {
 								// Created date
 								const cont = description.match(/<t:\d+:R>/gmi)[0].split(':')[1];
 								const created = Number(cont);
-								console.log(moment().unix());
 								const difference = moment().unix() - created;
-								console.log('Created', cont, difference);
+
 								if (difference > listener.conditions?.created) {
 									embed.fields = embed.fields.filter(f => f.name !== coin);
 									continue;
