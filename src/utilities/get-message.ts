@@ -2,7 +2,7 @@ import sleep from '~/utilities/sleep';
 import config from '~/config';
 
 async function getMessage(channel: string, message: string): Promise<Message | null> {
-	const res = await fetch(`https://discord.com/api/v10/channels/${channel}/messages?around=${message}&limit=1`, {
+	const res = await fetch(`https://discord.com/api/channels/${channel}/messages?around=${message}&limit=1`, {
 		headers: {
 			'Authorization': config.token,
 			'X-Super-Properties': btoa(JSON.stringify(config.properties))

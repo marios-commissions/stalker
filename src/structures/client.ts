@@ -4,6 +4,7 @@ import { strip, getMessage } from '~/utilities';
 import Webhook from '~/structures/webhook';
 import config from '~/config';
 import WebSocket from 'ws';
+import moment from 'moment';
 
 class Client {
 	webhooks: Map<number, typeof Webhook> = new Map();
@@ -134,9 +135,10 @@ class Client {
 
 			case 'MESSAGE_CREATE':
 			case 'MESSAGE_UPDATE': {
-				const msg = payload.d;
+				const msg = payload.d as Message;
 
 				if (!msg.content && !msg.embeds?.length && !msg.attachments?.length) return;
+
 
 				const listeners = config.listeners?.filter(listener => {
 					if (listener.channel && listener.channel !== msg.channel_id) {
@@ -159,6 +161,54 @@ class Client {
 				const reply = msg.message_reference && (await getMessage(msg.message_reference.channel_id, msg.message_reference.message_id));
 
 				for (const listener of listeners) {
+					if (msg.channel_id === '1172966096995897408') {
+						if (!listener.conditions) continue;
+						const embed = msg.embeds[0];
+						if (!embed) return;
+
+						for (const field of embed.fields) {
+							try {
+								const coin = field.name;
+								const description = field.value;
+
+								// Liquidity
+								const liquidity = description.match(/LIQ\: (.*?)(?=\`)/gmi)[0].split(': ')[1];
+								const liquidityNum = Number(liquidity.match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
+								console.log('Liquidity', liquidity, liquidityNum);
+								if (liquidityNum < listener.conditions?.liquidity) {
+									console.log('Coin did not meet requirements for liquidity:', coin);
+									embed.fields = embed.fields.filter(f => f.name !== coin);
+									continue;
+								}
+
+								// Volume
+								const vol = description.match(/VOL\: (.*?)(?=\`)/gmi)[0].split(': ')[1];
+								const volume = Number(vol.match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
+								console.log('Volume', vol, volume);
+								if (volume < listener.conditions?.volume) {
+									embed.fields = embed.fields.filter(f => f.name !== coin);
+									continue;
+								};
+
+								// Created date
+								const cont = description.match(/<t:\d+:R>/gmi)[0].split(':')[1];
+								const created = Number(cont);
+								console.log(moment().unix());
+								const difference = moment().unix() - created;
+								console.log('Created', cont, difference);
+								if (difference > listener.conditions?.created) {
+									embed.fields = embed.fields.filter(f => f.name !== coin);
+									continue;
+								};
+							} catch (e) {
+								console.error(e);
+								continue;
+							}
+						}
+
+						if (!embed.fields.length) return;
+					}
+
 					const idx = config.listeners.indexOf(listener);
 					this.webhooks[idx] ??= new Webhook(listener.webhook ?? config.webhook);
 
@@ -175,7 +225,7 @@ class Client {
 						].filter(Boolean).join('\n') ?? '',
 						username: msg.author?.username ?? listener.name ?? 'Unknown',
 						avatar_url: msg.author?.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null,
-						embeds: msg.embeds ?? []
+						embeds: !listener.conditions ? (msg.embeds ?? []) : []
 					});
 				}
 			} break;
@@ -192,15 +242,45 @@ class Client {
 		}
 
 		const shouldAllowEmbeds = config.embeds || listener.embeds;
-		if (!shouldAllowEmbeds) {
-			const links = content?.match(/^(?!<)https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gmi);
-			if (!links?.length) return content;
-
+		const links = content?.match(/^(?!<)https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gmi);
+		if (!shouldAllowEmbeds && links?.length) {
 			for (const link of links) {
 				const areEmbedsAllowedForCurrentEntity = (config?.allowedEmbeds ?? []).some(allowed => ~link.indexOf(allowed));
 
 				if (!areEmbedsAllowedForCurrentEntity) {
 					content = content.replaceAll(link, `<${link}>`);
+				}
+			}
+		}
+
+		if (listener.conditions && msg.channel_id === '1172966096995897408') {
+			const embed = msg.embeds[0];
+			if (!embed) return content;
+
+			content = '';
+
+			for (const field of embed.fields) {
+				const oldContent = content;
+
+				try {
+					const coin = field.name;
+					const description = field.value;
+
+					const liquidity = description.match(/LIQ\: (.*?)(?=\`)/gmi)[0].split(': ')[1];
+					const volume = description.match(/VOL\: (.*?)(?=\`)/gmi)[0].split(': ')[1];
+					const created = description.match(/<t:\d+:R>/gmi)[0];
+
+					content += '\n\n=============\n';
+					content += '**' + coin + '**' + '\n\n';
+
+					content += `**Liquidity**: ${liquidity}\n`;
+					content += `**Volume**: ${volume}\n`;
+					content += `**Created**: ${created}\n`;
+					content += '=============';
+				} catch (e) {
+					console.log(e);
+					content = oldContent;
+					continue;
 				}
 			}
 		}
@@ -285,7 +365,6 @@ class Client {
 		if (this.state === ConnectionState.CONNECTING) return;
 
 		this.broadcast(OPCodes.HEARTBEAT, this.sequence ?? 0);
-		// this.logger.debug('⟵ PING');
 	}
 
 	startHeartbeat() {
