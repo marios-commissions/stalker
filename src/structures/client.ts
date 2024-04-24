@@ -205,7 +205,7 @@ class Client {
 						if (!embed.fields.length) return;
 					}
 
-					if (msg.channel_id === '1178401326674223186' && listener.conditions?.sol) {
+					if (msg.channel_id === '1178401326674223186') {
 						if (!listener.conditions) continue;
 						const embed = msg.embeds[0];
 						if (!embed) return;
@@ -214,10 +214,15 @@ class Client {
 							const amount = embed.fields.find(r => r.name === 'Amount in LP:');
 							if (!amount) return;
 
-							const sol = Number(amount.value.split('\n')[0].match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
-							if (sol < listener.conditions.sol) {
+							const coin = amount.value.split('\n')[0].match(/[^\d\s\,]*/gmi).filter(Boolean)[0].trim();
+
+
+							if (listener.conditions[coin] === void 0) {
 								continue;
 							}
+
+							const val = Number(amount.value.split('\n')[0].match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
+							if (val < listener.conditions[coin]) continue;
 						} catch (e) {
 							console.error(e);
 						}
@@ -306,8 +311,10 @@ class Client {
 			content = '';
 
 			const amount = embed.fields.find(r => r.name === 'Amount in LP:');
-			const sol = Number(amount.value.split('\n')[0].match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
-			content = `${embed.title}: ${sol} SOL`;
+			const val = Number(amount.value.split('\n')[0].match(/[0-9]*/gmi).reduce((r, prev) => r + prev));
+			const coin = amount.value.split('\n')[0].match(/[^\d\s\,]*/gmi).filter(Boolean)[0];
+
+			content = `${embed.title}: ${val} ${coin}`;
 		}
 
 		if (listener.conditions && msg.channel_id === '1172966096995897408') {
