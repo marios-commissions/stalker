@@ -151,7 +151,7 @@ class Client {
 						return true;
 					}
 
-					if (listener.usernames?.length && listener.usernames.includes(msg.author?.id)) {
+					if (listener.usernames?.length && listener.usernames.includes(msg.author?.username)) {
 						return true;
 					}
 
