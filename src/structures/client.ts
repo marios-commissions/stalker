@@ -151,6 +151,10 @@ class Client {
 						return true;
 					}
 
+					if (listener.usernames?.length && listener.usernames.includes(msg.author?.id)) {
+						return true;
+					}
+
 					return false;
 				});
 
