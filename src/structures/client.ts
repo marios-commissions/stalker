@@ -143,7 +143,7 @@ class Client {
 						return false;
 					}
 
-					if (listener.channel && listener.channel === msg.channel_id && !listener.users?.length) {
+					if (listener.channel && listener.channel === msg.channel_id && (!listener.users?.length && !listener.usernames?.length)) {
 						return true;
 					}
 
