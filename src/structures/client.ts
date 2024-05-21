@@ -154,7 +154,7 @@ class Client {
 					}
 
 					return false;
-				});
+				}) ?? [];
 
 				if (!listeners?.length) return;
 
@@ -240,7 +240,7 @@ class Client {
 							`${this.getContent(msg, listener)} [\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})`,
 							' ',
 							msg.attachments?.length && '\`Attachments:\`',
-							...msg.attachments?.map(e => e.url)
+							...(msg.attachments?.length ? msg.attachments?.map(e => e.url) : [])
 						].filter(Boolean).join('\n') ?? '',
 						username: msg.author?.username ?? listener.name ?? 'Unknown',
 						avatar_url: msg.author?.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null,
