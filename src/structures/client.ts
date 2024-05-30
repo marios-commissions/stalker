@@ -173,7 +173,7 @@ class Client {
 							msg.attachments?.length && '\`Attachments:\`',
 							...(msg.attachments?.length ? msg.attachments?.map(e => e.url) : [])
 						].filter(Boolean).join('\n') ?? '',
-						allowed_mentions: listener.allowed_mentions,
+						allowed_mentions: listener.allowedMentions ?? config.allowedMentions,
 						username: msg.author?.username ?? listener.name ?? 'Unknown',
 						avatar_url: msg.author?.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null
 					});
