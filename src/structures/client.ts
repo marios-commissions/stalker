@@ -170,7 +170,7 @@ class Client {
 						content: [
 							payload.t === 'MESSAGE_UPDATE' ? '__**Message Updated**__' : '',
 							reply?.content && `**Replying to ${reply.author?.username ?? 'Unknown'}**`,
-							...(reply?.content ? ((listener.quoteReplyMentions ?? true) ? reply.content : reply.content.replaceAll(/\@(everyone|here)/g, '<$1>')).split('\n').map(e => '> ' + e) : []),
+							...(reply?.content ? (listener.quoteReplyMentions ? reply.content : reply.content.replaceAll(/\@(everyone|here)/g, '<$1 tag>')).split('\n').map(e => '> ' + e) : []),
 							reply?.content && ' ',
 							`${this.getContent(msg, listener)} [\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})`,
 							' ',
