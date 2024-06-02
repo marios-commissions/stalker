@@ -153,6 +153,10 @@ class Client {
 						return false;
 					}
 
+					if (listener.repliesOnly && !msg.message_reference) {
+						return false;
+					}
+
 					if (listener.channel && listener.channel === msg.channel_id && (!listener.users?.length && !listener.usernames?.length)) {
 						return true;
 					}
@@ -170,7 +174,7 @@ class Client {
 
 				if (!listeners?.length) return;
 
-				const reply = listeners.some(l => (l.replies ?? true)) && msg.message_reference && (await getMessage(msg.message_reference.channel_id, msg.message_reference.message_id));
+				const reply = msg.message_reference && (await getMessage(msg.message_reference.channel_id, msg.message_reference.message_id));
 				const channel = this.channels.get(msg.channel_id);
 
 				for (const listener of listeners) {
@@ -180,16 +184,16 @@ class Client {
 					this.webhooks[idx].send({
 						content: [
 							payload.t === 'MESSAGE_UPDATE' ? '__**Message Updated**__' : '',
-							reply?.content && `**Replying to ${reply.author?.username ?? 'Unknown'}**`,
-							...(reply?.content ? (listener.quoteReplyMentions ? reply.content : reply.content.replaceAll(/\@(everyone|here)/g, '<$1 tag>')).split('\n').map(e => '> ' + e) : []),
-							reply?.content && ' ',
+							(listener.replies ?? true) && reply?.content && `**Replying to ${reply.author?.username ?? 'Unknown'}**`,
+							...((listener.replies ?? true) && reply?.content ? (listener.quoteReplyMentions ? reply.content : reply.content.replaceAll(/\@(everyone|here)/g, '<$1 tag>')).split('\n').map(e => '> ' + e) : []),
+							(listener.replies ?? true) && reply?.content && ' ',
 							`${this.getContent(msg, listener)} ` + ((listener.includeLink ?? true) ? `[\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})` : ''),
 							' ',
 							msg.attachments?.length && '\`Attachments:\`',
 							...(msg.attachments?.length ? msg.attachments?.map(e => e.url) : [])
 						].filter(Boolean).join('\n') ?? '',
 						allowed_mentions: listener.allowedMentions ?? config.allowedMentions,
-						username: listener.name ?? (listener.includeChannel ? `${msg.author?.username} | ${channel ? (channel.name ?? 'DM') : 'Unknown'}` : msg.author?.username) ?? 'Unknown',
+						username: listener.name ?? (listener.includeChannel ? `${(listener.useReplyUserInsteadOfAuthor ? reply.author?.username : msg.author?.username) ?? 'Unknown'} | ${channel ? (channel.name ?? 'DM') : 'Unknown'}` : msg.author?.username) ?? 'Unknown',
 						avatar_url: msg.author?.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null,
 						embeds: msg.embeds ?? []
 					});
