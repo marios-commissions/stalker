@@ -160,7 +160,7 @@ class Client {
 
 				if (!listeners?.length) return;
 
-				const reply = msg.message_reference && (await getMessage(msg.message_reference.channel_id, msg.message_reference.message_id));
+				const reply = listeners.some(l => (l.replies ?? true)) && msg.message_reference && (await getMessage(msg.message_reference.channel_id, msg.message_reference.message_id));
 
 				for (const listener of listeners) {
 					const idx = config.listeners.indexOf(listener);
@@ -172,7 +172,7 @@ class Client {
 							reply?.content && `**Replying to ${reply.author?.username ?? 'Unknown'}**`,
 							...(reply?.content ? (listener.quoteReplyMentions ? reply.content : reply.content.replaceAll(/\@(everyone|here)/g, '<$1 tag>')).split('\n').map(e => '> ' + e) : []),
 							reply?.content && ' ',
-							`${this.getContent(msg, listener)} [\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})`,
+							`${this.getContent(msg, listener)}` + (listener.includeLink ?? true) ? `[\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})` : '',
 							' ',
 							msg.attachments?.length && '\`Attachments:\`',
 							...(msg.attachments?.length ? msg.attachments?.map(e => e.url) : [])
