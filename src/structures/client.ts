@@ -9,6 +9,7 @@ class Client {
 	webhooks: Map<number, typeof Webhook> = new Map();
 	logger = createLogger('WebSocket', 'Client');
 	channels: Map<string, any> = new Map();
+	guilds: Map<string, any> = new Map();
 	ws: WebSocket;
 
 	user: User;
@@ -126,6 +127,8 @@ class Client {
 				};
 
 				for (const guild of payload.d.guilds ?? []) {
+					this.guilds.set(guild.id, guild);
+
 					for (const channel of guild.channels) {
 						this.channels.set(channel.id, channel);
 					}
@@ -176,6 +179,7 @@ class Client {
 
 				const reply = msg.message_reference && (await getMessage(msg.message_reference.channel_id, msg.message_reference.message_id));
 				const channel = this.channels.get(msg.channel_id);
+				const guild = this.guilds.get(msg.guild_id);
 
 				for (const listener of listeners) {
 					const idx = config.listeners.indexOf(listener);
@@ -193,7 +197,7 @@ class Client {
 							...(msg.attachments?.length ? msg.attachments?.map(e => e.url) : [])
 						].filter(Boolean).join('\n') ?? '',
 						allowed_mentions: listener.allowedMentions ?? config.allowedMentions,
-						username: listener.name ?? (listener.includeChannel ? `${(listener.useReplyUserInsteadOfAuthor ? reply.author?.username : msg.author?.username) ?? 'Unknown'} | ${channel ? (channel.name ?? 'DM') : 'Unknown'}` : msg.author?.username) ?? 'Unknown',
+						username: listener.name ?? (listener.includeChannel ? `${(listener.useReplyUserInsteadOfAuthor ? reply.author?.username : msg.author?.username) ?? 'Unknown'} | ${(listener.useServerNameInsteadOfChannel ? guild : channel).name ?? 'Unknown'}` : msg.author.username ?? 'Unknown'),
 						avatar_url: msg.author?.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null,
 						embeds: msg.embeds ?? []
 					});
