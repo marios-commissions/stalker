@@ -8,6 +8,7 @@ import WebSocket from 'ws';
 class Client {
 	webhooks: Map<number, typeof Webhook> = new Map();
 	logger = createLogger('WebSocket', 'Client');
+	channels: Map<string, any> = new Map();
 	ws: WebSocket;
 
 	user: User;
@@ -120,6 +121,15 @@ class Client {
 				this.sessionId = payload.d.session_id;
 				this.user = payload.d.user;
 
+				for (const channel of payload.d.private_channels ?? []) {
+					this.channels.set(channel.id, channel);
+				};
+
+				for (const guild of payload.d.guilds ?? []) {
+					for (const channel of guild.channels) {
+						this.channels.set(channel.id, channel);
+					}
+				};
 
 				this.state = ConnectionState.CONNECTED;
 				this.logger.success(`Logged in as ${this.user.username}.`, `Token: ${strip(this.token)}`);
@@ -161,6 +171,7 @@ class Client {
 				if (!listeners?.length) return;
 
 				const reply = listeners.some(l => (l.replies ?? true)) && msg.message_reference && (await getMessage(msg.message_reference.channel_id, msg.message_reference.message_id));
+				const channel = this.channels.get(msg.channel_id);
 
 				for (const listener of listeners) {
 					const idx = config.listeners.indexOf(listener);
@@ -172,13 +183,13 @@ class Client {
 							reply?.content && `**Replying to ${reply.author?.username ?? 'Unknown'}**`,
 							...(reply?.content ? (listener.quoteReplyMentions ? reply.content : reply.content.replaceAll(/\@(everyone|here)/g, '<$1 tag>')).split('\n').map(e => '> ' + e) : []),
 							reply?.content && ' ',
-							`${this.getContent(msg, listener)}` + (listener.includeLink ?? true) ? `[\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})` : '',
+							`${this.getContent(msg, listener)} ` + ((listener.includeLink ?? true) ? `[\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})` : ''),
 							' ',
 							msg.attachments?.length && '\`Attachments:\`',
 							...(msg.attachments?.length ? msg.attachments?.map(e => e.url) : [])
 						].filter(Boolean).join('\n') ?? '',
 						allowed_mentions: listener.allowedMentions ?? config.allowedMentions,
-						username: msg.author?.username ?? listener.name ?? 'Unknown',
+						username: listener.name ?? (listener.includeChannel ? `${msg.author?.username} | ${channel ? (channel.name ?? 'DM') : 'Unknown'}` : msg.author?.username) ?? 'Unknown',
 						avatar_url: msg.author?.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null,
 						embeds: msg.embeds ?? []
 					});
