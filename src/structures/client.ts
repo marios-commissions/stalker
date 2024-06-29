@@ -339,7 +339,8 @@ class Client {
 		this.logger.info('Getting latest client build number to avoid suspensions...');
 
 		const doc = await fetch('https://discord.com/app').then(r => r.text());
-		const scripts = doc.match(/\/assets\/[0-9]{1,5}.*?.js/gmi);
+
+		const scripts = doc.match(/\/assets\/web\.([a-z]|[0-9]).*?.js/gmi);
 
 		if (!scripts?.length) {
 			this.logger.error('Failed to get latest build number.');
@@ -367,7 +368,7 @@ class Client {
 				}
 
 				config.properties.client_build_number = Number(build);
-				this.logger.success('Fetched latest client build number.');
+				this.logger.success('Fetched latest client build number:', config.properties.client_build_number);
 
 				break;
 			} catch (error) {
