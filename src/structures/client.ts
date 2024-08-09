@@ -156,6 +156,10 @@ class Client {
 						return false;
 					}
 
+					if (payload.t === 'MESSAGE_UPDATE' && !listener.messageUpdates) {
+						return false;
+					}
+
 					if (listener.repliesOnly && !msg.message_reference) {
 						return false;
 					}
