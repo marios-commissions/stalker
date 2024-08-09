@@ -145,6 +145,10 @@ class Client {
 						return false;
 					}
 
+					if (payload.t === 'MESSAGE_UPDATE' && !listener.messageUpdates) {
+						return false;
+					}
+
 					if (listener.channel && listener.channel === msg.channel_id && !listener.users?.length) {
 						return true;
 					}
