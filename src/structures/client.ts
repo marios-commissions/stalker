@@ -185,16 +185,19 @@ class Client {
 				const channel = this.channels.get(msg.channel_id);
 				const guild = this.guilds.get(msg.guild_id);
 
+
 				for (const listener of listeners) {
 					const idx = config.listeners.indexOf(listener);
 					this.webhooks[idx] ??= new Webhook(listener.webhook ?? config.webhook);
 
+					const replyContent = (listener.quoteReplyMentions ? reply?.content : reply?.content.replaceAll(/\@(everyone|here)/g, '<$1 tag>')) ?? '*Message deleted*';
+
 					this.webhooks[idx].send({
 						content: [
 							payload.t === 'MESSAGE_UPDATE' ? '__**Message Updated**__' : '',
-							(listener.showReplies ?? true) && reply?.content && `**Replying to ${reply.author?.username ?? 'Unknown'}**`,
-							...((listener.showReplies ?? true) && reply?.content ? (listener.quoteReplyMentions ? reply.content : reply.content.replaceAll(/\@(everyone|here)/g, '<$1 tag>')).split('\n').map(e => '> ' + e) : []),
-							(listener.showReplies ?? true) && reply?.content && ' ',
+							(listener.showReplies ?? true) && msg.message_reference && `**Replying to ${reply?.author?.username ?? 'Unknown'}**`,
+							...(((listener.showReplies ?? true) && msg.message_reference) ? replyContent.split('\n').map(e => '> ' + e) : []),
+							(listener.showReplies ?? true) && msg.message_reference && ' ',
 							`${this.getContent(msg, listener)} ` + ((listener.includeLink ?? true) ? `[\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})` : ''),
 							' ',
 							msg.attachments?.length && '\`Attachments:\`',

@@ -8,13 +8,13 @@
 	"author": "Mario <me@marioparaschiv.com> (github.com/marioparaschiv)",
 	"license": "Unlicensed",
 	"dependencies": {
-		"discord.js-selfbot-v13": "^3.1.4",
+		"discord.js-selfbot-v13": "^3.3.0",
 		"source-map-support": "^0.5.21",
-		"ws": "^8.17.1"
+		"ws": "^8.18.0"
 	},
 	"devDependencies": {
-		"@swc/core": "^1.6.6",
-		"@types/node": "^20.14.9",
-		"discord-api-types": "^0.37.91"
+		"@swc/core": "^1.7.24",
+		"@types/node": "^22.5.4",
+		"discord-api-types": "^0.37.100"
 	}
 }
