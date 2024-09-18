@@ -1,12 +1,12 @@
 import { OPCodes, ConnectionState, HELLO_TIMEOUT, HEARTBEAT_MAX_RESUME_THRESHOLD, MAX_CONNECTION_RETRIES, BUILD_NUMBER_STRING, BUILD_NUMBER_LENGTH } from '~/constants';
+import { strip, getMessage, streamToString } from '~/utilities';
 import { createLogger } from '~/structures/logger';
-import { strip, getMessage } from '~/utilities';
-import Webhook from '~/structures/webhook';
+import ElevenLabs from '~/structures/elevenlabs';
+import EventEmitter from 'events';
 import config from '~/config';
 import WebSocket from 'ws';
 
-class Client {
-	webhooks: Map<number, typeof Webhook> = new Map();
+class Client extends EventEmitter {
 	logger = createLogger('WebSocket', 'Client');
 	channels: Map<string, any> = new Map();
 	guilds: Map<string, any> = new Map();
@@ -29,6 +29,8 @@ class Client {
 	constructor(
 		public token: string,
 	) {
+		super();
+
 		this.getLatestBuildNumber().then(this.createSocket.bind(this));
 	}
 
@@ -182,61 +184,33 @@ class Client {
 				if (!listeners?.length) return;
 
 				const reply = msg.message_reference && (await getMessage(msg.message_reference.channel_id, msg.message_reference.message_id));
-				const channel = this.channels.get(msg.channel_id);
-				const guild = this.guilds.get(msg.guild_id);
-
+				const replyContent = reply?.content ?? '(Unable to get message content, it was most likely deleted)';
 
 				for (const listener of listeners) {
-					const idx = config.listeners.indexOf(listener);
-					this.webhooks[idx] ??= new Webhook(listener.webhook ?? config.webhook);
+					try {
+						const stream = await ElevenLabs.textToSpeech.convert(listener.voiceId, {
+							text: [
+								payload.t === 'MESSAGE_UPDATE' ? 'This message is being broadcasted again as a result of on edit.' : '',
+								msg.message_reference && `This message is replying to ${reply?.author?.username ?? 'Unknown'} that previously said: "${replyContent}"`,
+								msg.message_reference && ' ',
+								`${msg.author?.username ?? 'Unknown'} says:` + msg.content,
+								' ',
+								msg.attachments?.length && `This message also has ${msg.attachments.length} attachments.`,
+							].filter(Boolean).join('\n') ?? ''
+						});
 
-					const replyContent = (listener.quoteReplyMentions ? reply?.content : reply?.content.replaceAll(/\@(everyone|here)/g, '<$1 tag>')) ?? '*Message deleted*';
+						this.logger.info('Streaming...');
+						const content = await streamToString(stream);
+						this.logger.success('Streamed.');
 
-					this.webhooks[idx].send({
-						content: [
-							payload.t === 'MESSAGE_UPDATE' ? '__**Message Updated**__' : '',
-							(listener.showReplies ?? true) && msg.message_reference && `**Replying to ${reply?.author?.username ?? 'Unknown'}**`,
-							...(((listener.showReplies ?? true) && msg.message_reference) ? replyContent.split('\n').map(e => '> ' + e) : []),
-							(listener.showReplies ?? true) && msg.message_reference && ' ',
-							`${this.getContent(msg, listener)} ` + ((listener.includeLink ?? true) ? `[\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})` : ''),
-							' ',
-							msg.attachments?.length && '\`Attachments:\`',
-							...(msg.attachments?.length ? msg.attachments?.map(e => e.url) : [])
-						].filter(Boolean).join('\n') ?? '',
-						allowed_mentions: listener.allowedMentions ?? config.allowedMentions,
-						username: listener.name ?? (listener.includeChannel ? `${(listener.useReplyUserInsteadOfAuthor ? reply.author?.username : msg.author?.username) ?? 'Unknown'} | ${(listener.useServerNameInsteadOfChannel ? guild : channel).name ?? 'Unknown'}` : msg.author.username ?? 'Unknown'),
-						avatar_url: msg.author?.avatar ? `https://cdn.discordapp.com/avatars/${msg.author.id}/${msg.author.avatar}.${msg.author.avatar.startsWith('a_') ? 'gif' : 'png'}?size=4096` : null,
-						embeds: msg.embeds ?? []
-					});
+						this.emit('tts', content?.buffer);
+					} catch (error) {
+						this.logger.error('Failed to convert into text to speech:', error);
+					}
+
 				}
 			} break;
 		}
-	}
-
-	getContent(msg: Message, listener: any) {
-		let content = msg.content;
-
-		if (config.replacements) {
-			for (const [subject, replacement] of Object.entries(config.replacements)) {
-				content = content?.replaceAll(subject, replacement);
-			}
-		}
-
-		const shouldAllowEmbeds = config.embeds || listener.embeds;
-		if (!shouldAllowEmbeds) {
-			const links = content?.match(/^(?!<)https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/gmi);
-			if (!links?.length) return content;
-
-			for (const link of links) {
-				const areEmbedsAllowedForCurrentEntity = (config?.allowedEmbeds ?? []).some(allowed => ~link.indexOf(allowed));
-
-				if (!areEmbedsAllowedForCurrentEntity) {
-					content = content.replaceAll(link, `<${link}>`);
-				}
-			}
-		}
-
-		return content;
 	}
 
 	onHello(payload: { heartbeat_interval: number; }) {
@@ -400,4 +374,4 @@ class Client {
 	}
 }
 
-export default Client;
+export default new Client(config.auth.discord);

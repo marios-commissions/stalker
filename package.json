@@ -9,7 +9,9 @@
 	"license": "Unlicensed",
 	"dependencies": {
 		"discord.js-selfbot-v13": "^3.3.0",
+		"elevenlabs": "^0.16.0",
 		"source-map-support": "^0.5.21",
+		"stream-to": "^2.0.0",
 		"ws": "^8.18.0"
 	},
 	"devDependencies": {

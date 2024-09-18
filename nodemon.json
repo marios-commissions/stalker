@@ -2,8 +2,9 @@
 	"ext": "*.*",
 	"exec": "swc src -d dist -D --delete-dir-on-start --strip-leading-paths && node dist/index.js",
 	"ignore": [
-		"./dist",
-		"./.git/**",
-		"./node_modules/**"
+		"dist",
+		".git",
+		"node_modules",
+		"web"
 	]
 }
