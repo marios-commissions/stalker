@@ -2,6 +2,7 @@ import { OPCodes, ConnectionState, HELLO_TIMEOUT, HEARTBEAT_MAX_RESUME_THRESHOLD
 import { strip, getMessage, streamToString } from '~/utilities';
 import { createLogger } from '~/structures/logger';
 import ElevenLabs from '~/structures/elevenlabs';
+import store from '~/structures/store';
 import EventEmitter from 'events';
 import config from '~/config';
 import WebSocket from 'ws';
@@ -188,16 +189,35 @@ class Client extends EventEmitter {
 
 				for (const listener of listeners) {
 					try {
-						const stream = await ElevenLabs.textToSpeech.convert(listener.voiceId, {
-							text: [
-								payload.t === 'MESSAGE_UPDATE' ? 'This message is being broadcasted again as a result of on edit.' : '',
-								msg.message_reference && `This message is replying to ${reply?.author?.username ?? 'Unknown'} that previously said: "${replyContent}"`,
-								msg.message_reference && ' ',
-								`${msg.author?.username ?? 'Unknown'} says:` + msg.content,
-								' ',
-								msg.attachments?.length && `This message also has ${msg.attachments.length} attachments.`,
-							].filter(Boolean).join('\n') ?? ''
-						});
+						const urls = (msg.content as string).match(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gmi);
+
+						if (urls?.length) {
+							for (const match of urls) {
+								const url = new URL(match);
+
+								msg.content = msg.content.replaceAll(match, `(link to ${url.host})`);
+							}
+						}
+
+						if (config.replacements.length) {
+							for (const { pattern, replacement } of config.replacements) {
+								const regex = new RegExp(pattern, 'gmi');
+								msg.content = msg.content.replaceAll(regex, replacement);
+							}
+						}
+
+						const messageContent = [
+							payload.t === 'MESSAGE_UPDATE' ? 'This message is being broadcasted again as a result of on edit.' : '',
+							msg.message_reference && `This message is replying to ${reply?.author?.username ?? 'Unknown'} that previously said: "${replyContent}"`,
+							msg.message_reference && ' ',
+							`${msg.author?.username ?? 'Unknown'} says: ${msg.content}`,
+							' ',
+							msg.attachments?.length && `This message also has ${msg.attachments.length} attachments.`,
+						].filter(Boolean).join('\n') ?? '';
+
+						store.add({ content: messageContent, date: Date.now() });
+
+						const stream = await ElevenLabs.textToSpeech.convert(listener.voiceId, { text: messageContent });
 
 						this.logger.info('Streaming...');
 						const content = await streamToString(stream);

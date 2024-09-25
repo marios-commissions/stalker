@@ -83,6 +83,12 @@ declare interface Guild {
 }
 
 declare interface Message {
+	content: string;
+	date: number;
+	origin: 'telegram' | 'discord';
+}
+
+declare interface DiscordMessage {
 	id: string,
 	type: number,
 	content: string,

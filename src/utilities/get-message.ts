@@ -1,7 +1,7 @@
 import sleep from '~/utilities/sleep';
 import config from '~/config';
 
-async function getMessage(channel: string, message: string, retriesRemaining: number = 3): Promise<Message | null> {
+async function getMessage(channel: string, message: string, retriesRemaining: number = 3): Promise<DiscordMessage | null> {
 	if (retriesRemaining === 0) return null;
 
 	const res = await fetch(`https://discord.com/api/v10/channels/${channel}/messages?around=${message}&limit=1`, {
@@ -24,7 +24,7 @@ async function getMessage(channel: string, message: string, retriesRemaining: nu
 		return null;
 	}
 
-	return json?.[0] as Message;
+	return json?.[0] as DiscordMessage;
 }
 
 export default getMessage;
