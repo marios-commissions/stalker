@@ -1,4 +1,6 @@
 import sourcemaps from 'source-map-support';
+
+
 sourcemaps.install();
 
 import Webhook from '~/structures/webhook';
@@ -7,7 +9,7 @@ import config from '~/config';
 
 new Client(config.token);
 
-if (config.errors.catch) {
+if (config.errors?.catch) {
 	const webhook = new Webhook(config.errors.webhook);
 
 	process.on('uncaughtException', (error, origin) => {

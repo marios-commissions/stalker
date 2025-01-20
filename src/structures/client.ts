@@ -1,9 +1,10 @@
 import { OPCodes, ConnectionState, HELLO_TIMEOUT, HEARTBEAT_MAX_RESUME_THRESHOLD, MAX_CONNECTION_RETRIES, BUILD_NUMBER_STRING, BUILD_NUMBER_LENGTH } from '~/constants';
 import { createLogger } from '~/structures/logger';
-import { strip, getMessage } from '~/utilities';
 import Webhook from '~/structures/webhook';
+import { strip } from '~/utilities';
 import config from '~/config';
 import WebSocket from 'ws';
+
 
 class Client {
 	webhooks: Map<number, typeof Webhook> = new Map();
@@ -160,7 +161,7 @@ class Client {
 						return false;
 					}
 
-					if (listener.repliesOnly && !msg.message_reference) {
+					if (listener.repliesOnly && !msg.referenced_message) {
 						return false;
 					}
 
@@ -181,7 +182,7 @@ class Client {
 
 				if (!listeners?.length) return;
 
-				const reply = msg.message_reference && (await getMessage(msg.message_reference.channel_id, msg.message_reference.message_id));
+				const reply = msg.referenced_message;
 				const channel = this.channels.get(msg.channel_id);
 				const guild = this.guilds.get(msg.guild_id);
 
@@ -195,9 +196,9 @@ class Client {
 					this.webhooks[idx].send({
 						content: [
 							payload.t === 'MESSAGE_UPDATE' ? '__**Message Updated**__' : '',
-							(listener.showReplies ?? true) && msg.message_reference && `**Replying to ${reply?.author?.username ?? 'Unknown'}**`,
-							...(((listener.showReplies ?? true) && msg.message_reference) ? replyContent.split('\n').map(e => '> ' + e) : []),
-							(listener.showReplies ?? true) && msg.message_reference && ' ',
+							(listener.showReplies ?? true) && reply && `**Replying to ${reply?.author?.username ?? 'Unknown'}**`,
+							...(((listener.showReplies ?? true) && reply) ? replyContent.split('\n').map(e => '> ' + e) : []),
+							(listener.showReplies ?? true) && reply && ' ',
 							`${this.getContent(msg, listener)} ` + ((listener.includeLink ?? true) ? `[\`↖\`](https://discord.com/channels/${msg.guild_id ?? '@me'}/${msg.channel_id}/${msg.id})` : ''),
 							' ',
 							msg.attachments?.length && '\`Attachments:\`',
